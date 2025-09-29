@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News Classifier</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <!-- Particle Background -->
+  <div id="particles-js"></div>
+
+  <!-- Scrolling News Headlines -->
+  <div class="news-bg">
+    BREAKING NEWS ⚡ POLITICS 🏛 SPORTS ⚽ BUSINESS 💼 TECHNOLOGY 💻 ENTERTAINMENT 🎬 WORLD 🌍 BREAKING NEWS ⚡ POLITICS 🏛 SPORTS ⚽ BUSINESS 💼 TECHNOLOGY 💻 ENTERTAINMENT 🎬 WORLD 🌍
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <h1>📰 News Article Classifier</h1>
+    <form method="POST" action="/predict">
+      <textarea name="news_text" placeholder="Enter a news headline or article..." required>{{ input_text if input_text else "" }}</textarea>
+      <button type="submit">Classify</button>
+    </form>
+
+    {% if prediction %}
+      <div class="result">
+        <h2>Predicted Category:</h2>
+        <p><strong>{{ prediction }}</strong></p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Particle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="{{ url_for('static', filename='particles-config.js') }}"></script>
+</body>
+</html>
