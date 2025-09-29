@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Classifier - AI-Powered News Categorization</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            padding: 2rem 0;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            border: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .card-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            border: none;
+            border-radius: 15px;
+            padding: 1.5rem;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: #2d5016;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa8a8 100%);
+            color: #721c24;
+        }
+
+        .prediction-result {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .prediction-category {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .confidence-score {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .confidence-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            background: rgba(255, 255, 255, 0.8);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-out;
+            animation: fillBar 1s ease-out;
+        }
+
+        .probabilities {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .probability-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .probability-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .probability-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 1rem;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+
+        .api-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            color: white;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: inline-block;
+        }
+
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fillBar {
+            from {
+                width: 0%;
+            }
+        }
+
+        .category-icons {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 3rem;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .card-header h1 {
+                font-size: 2rem;
+            }
+            
+            .prediction-category {
+                font-size: 2rem;
+            }
+            
+            .category-icons {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="container main-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card">
+                    <div class="card-header">
+                        <h1><i class="fas fa-newspaper"></i> News Classifier</h1>
+                        <p>AI-Powered News Categorization using NLP & Machine Learning</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="/predict" id="newsForm">
+                            <div class="mb-4">
+                                <label for="news_text" class="form-label">
+                                    <i class="fas fa-edit"></i> Enter News Article Text
+                                </label>
+                                <textarea 
+                                    class="form-control" 
+                                    id="news_text" 
+                                    name="news_text" 
+                                    rows="6" 
+                                    placeholder="Paste your news article here... (minimum 10 characters)"
+                                    required>{{ input_text or '' }}</textarea>
+                                <div class="form-text">
+                                    Categories: Politics, Sports, Business, Technology, Entertainment
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <span class="loading" id="loadingSpinner">
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    </span>
+                                    <i class="fas fa-magic" id="submitIcon"></i>
+                                    <span id="submitText">Classify News</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        {% if error %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ error }}
+                            </div>
+                        {% endif %}
+
+                        {% if prediction %}
+                            <div class="prediction-result">
+                                <div class="category-icons">
+                                    {% if prediction == 'Politics' %}
+                                        <i class="fas fa-landmark"></i>
+                                    {% elif prediction == 'Sports' %}
+                                        <i class="fas fa-football-ball"></i>
+                                    {% elif prediction == 'Business' %}
+                                        <i class="fas fa-chart-line"></i>
+                                    {% elif prediction == 'Technology' %}
+                                        <i class="fas fa-microchip"></i>
+                                    {% elif prediction == 'Entertainment' %}
+                                        <i class="fas fa-film"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="prediction-category">{{ prediction }}</div>
+                                <div class="confidence-score">
+                                    Confidence: {{ "%.1f"|format(confidence * 100) }}%
+                                    {% if high_confidence %}
+                                        <i class="fas fa-check-circle ms-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-circle ms-2"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" style="width: {{ confidence * 100 }}%"></div>
+                                </div>
+                                
+                                {% if all_probabilities %}
+                                    <div class="probabilities">
+                                        <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>All Category Probabilities</h6>
+                                        {% for category, prob in all_probabilities.items() %}
+                                            <div class="probability-item">
+                                                <span>{{ category }}</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-2">{{ "%.1f"|format(prob * 100) }}%</span>
+                                                    <div class="probability-bar">
+                                                        <div class="probability-fill" style="width: {{ prob * 100 }}%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <div class="api-section">
+                            <h5><i class="fas fa-code me-2"></i>API Usage</h5>
+                            <p>You can also use our JSON API endpoint for programmatic access:</p>
+                            <div class="code-block">
+POST /api/predict
+Content-Type: application/json
+
+{
+  "text": "Your news article text here..."
+}
+                            </div>
+                            <p><strong>Response:</strong></p>
+                            <div class="code-block">
+{
+  "status": "success",
+  "prediction": "Technology",
+  "confidence": 0.85,
+  "all_probabilities": {...},
+  "high_confidence": true
+}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                <i class="fas fa-heart text-danger"></i> 
+                Built with Flask, scikit-learn, and AI magic
+            </p>
+            <p>
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    This model is trained on sample data and continuously learning
+                </small>
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script>
+        // Initialize particles.js
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: '#ffffff' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.5, random: false },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#ffffff',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 6,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: { enable: true, mode: 'repulse' },
+                    onclick: { enable: true, mode: 'push' },
+                    resize: true
+                },
+                modes: {
+                    grab: { distance: 400, line_linked: { opacity: 1 } },
+                    bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 },
+                    repulse: { distance: 200, duration: 0.4 },
+                    push: { particles_nb: 4 },
+                    remove: { particles_nb: 2 }
+                }
+            },
+            retina_detect: true
+        });
+
+        // Form submission handling
+        document.getElementById('newsForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            const submitIcon = document.getElementById('submitIcon');
+            const submitText = document.getElementById('submitText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitIcon.style.display = 'none';
+            loadingSpinner.classList.add('show');
+            submitText.textContent = 'Classifying...';
+        });
+
+        // Character counter
+        const textarea = document.getElementById('news_text');
+        const createCharCounter = () => {
+            const counter = document.createElement('div');
+            counter.className = 'form-text text-end';
+            counter.id = 'charCounter';
+            textarea.parentNode.insertBefore(counter, textarea.nextSibling);
+            return counter;
+        };
+
+        const charCounter = createCharCounter();
+        
+        const updateCharCounter = () => {
+            const length = textarea.value.length;
+            charCounter.textContent = `${length} characters`;
+            
+            if (length < 10) {
+                charCounter.className = 'form-text text-end text-warning';
+            } else {
+                charCounter.className = 'form-text text-end text-success';
+            }
+        };
+
+        textarea.addEventListener('input', updateCharCounter);
+        updateCharCounter();
+
+        // Auto-resize textarea
+        const autoResize = () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        };
+
+        textarea.addEventListener('input', autoResize);
+        autoResize();
+
+        // Add smooth scrolling to results
+        {% if prediction %}
+        setTimeout(() => {
+            const result = document.querySelector('.prediction-result');
+            if (result) {
+                result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+        {% endif %}
+
+        // API testing functionality
+        const testAPI = async () => {
+            const text = document.getElementById('news_text').value;
+            if (!text) {
+                alert('Please enter some text first');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (result.status === 'success') {
+                    alert(`API Test Successful!\nCategory: ${result.prediction}\nConfidence: ${(result.confidence * 100).toFixed(1)}%`);
+                } else {
+                    alert(`API Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('API test failed:', error);
+                alert('API test failed. Check console for details.');
+            }
+        };
+
+        // Add API test button (for development/testing)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const apiSection = document.querySelector('.api-section');
+            const testBtn = document.createElement('button');
+            testBtn.className = 'btn btn-sm btn-outline-light mt-2';
+            testBtn.innerHTML = '<i class="fas fa-play me-1"></i>Test API';
+            testBtn.onclick = testAPI;
+            apiSection.appendChild(testBtn);
+        }
+    </script>
+</body>
+</html>
